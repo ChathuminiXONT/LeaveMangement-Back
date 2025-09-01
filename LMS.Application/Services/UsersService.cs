@@ -10,10 +10,10 @@ using Departments = LMS.Domain.DTOs.Departments;
 
 namespace LMS.Application.Services
 {
-    public class UserService:IUserService
+    public class UsersService:IUsersService
     {
-        private readonly IUserRepository _userRepository;
-        public UserService(IUserRepository userRepository)
+        private readonly IUsersRepository _userRepository;
+        public UsersService(IUsersRepository userRepository)
         {
             _userRepository = userRepository;
         }

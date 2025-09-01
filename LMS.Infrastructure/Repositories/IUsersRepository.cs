@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace LMS.Infrastructure.Repositories
 {
-    public interface IUserRepository
+    public interface IUsersRepository
     {
       
         Task<User> GetUserByEmailAsync(string email);

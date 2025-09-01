@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace LMS.Infrastructure.Repositories
 {
-    public class UserRepository : IUserRepository
+    public class UsersRepository : IUsersRepository
     {
         private readonly LMSDbContext _context;
 
-        public UserRepository(LMSDbContext context)
+        public UsersRepository(LMSDbContext context)
         {
             _context = context;
         }

@@ -27,8 +27,8 @@ builder.Services.AddDbContext<LMSDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<ILeaveApprovalRepository, LeaveApprovalRepository>();
 builder.Services.AddScoped<ILeaveApprovalService, LeaveApprovalService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUsersRepository, UsersRepository>();
+builder.Services.AddScoped<IUsersService, UsersService>();
 builder.Services.AddHostedService<LeaveExpiryService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

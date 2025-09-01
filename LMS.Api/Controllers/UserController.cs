@@ -9,9 +9,9 @@ namespace LMS.Api.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IUserService _userService;
+        private readonly IUsersService _userService;
 
-        public UserController(IUserService userService)
+        public UserController(IUsersService userService)
         {
             _userService = userService;
         }
