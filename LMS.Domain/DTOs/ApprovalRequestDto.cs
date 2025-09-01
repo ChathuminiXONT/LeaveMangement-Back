@@ -8,7 +8,7 @@ namespace LMS.Domain.DTOs
 {
     public class ApprovalRequestDto
     {
-        public int RecId { get; set; }
+        public long RecId { get; set; }
         public string EmployeeEmail { get; set; }
         public string ApproverEmail { get; set; }
         public string ApproverLevel { get; set; } // 1 for Approver1, 2 for Approver2
