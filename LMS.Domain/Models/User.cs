@@ -8,10 +8,12 @@ using System.Threading.Tasks;
 
 namespace LMS.Domain.Models
 {
-    [Table("User", Schema = "HR")]
+    [Table("User", Schema = "DBO")]
     public class User
     {
         [Key]
+        public string EmailAddress { get; set; }
+
         [StringLength(15)]
         public string? LoginID { get; set; }
 
@@ -40,8 +42,8 @@ namespace LMS.Domain.Models
         [StringLength(30)]
         public string? Password { get; set; }
 
-        [StringLength(30)]
-        public string? EmailAddress { get; set; }
+        //[StringLength(30)]
+        //public string? EmailAddress { get; set; }
 
         public int UserID { get; set; }
 

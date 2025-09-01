@@ -32,7 +32,7 @@ namespace LMS.Api.Controllers
             }
             catch (Exception ex)
             {
-           
+
                 return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }

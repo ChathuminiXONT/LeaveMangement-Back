@@ -20,7 +20,7 @@ namespace LMS.Infrastructure.Repositories
             if (string.IsNullOrWhiteSpace(email))
                 return null;
 
-            return await _context.Users
+            return await _context.XDUsers
                 .FirstOrDefaultAsync(u => u.EmailAddress.ToLower() == email.ToLower());
         }
 

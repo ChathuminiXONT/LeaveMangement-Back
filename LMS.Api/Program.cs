@@ -1,11 +1,10 @@
 using LMS.Application.Services;
-
-using Microsoft.Data.SqlClient;
-
-using Microsoft.EntityFrameworkCore;
 using LMS.Domain.DTOs;
-using LMS.Infrastructure.Repositories;
+using LMS.Domain.Models;
 using LMS.Infrastructure.Data;
+using LMS.Infrastructure.Repositories;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -21,12 +20,16 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddScoped<LMS.Domain.Interfaces.IEmailService, LMS.Application.Services.EmailService>();
+
 builder.Services.AddDbContext<LMSDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<ILeaveApprovalRepository, LeaveApprovalRepository>();
 builder.Services.AddScoped<ILeaveApprovalService, LeaveApprovalService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddHostedService<LeaveExpiryService>();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

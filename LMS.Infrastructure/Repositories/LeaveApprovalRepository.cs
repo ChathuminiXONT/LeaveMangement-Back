@@ -1,12 +1,15 @@
 ﻿using LMS.Domain.DTOs;
+using LMS.Domain.Interfaces;
 using LMS.Domain.Models;
 using LMS.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using NETCore.MailKit.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using IEmailService = LMS.Domain.Interfaces.IEmailService;
 
 
 namespace LMS.Infrastructure.Repositories
@@ -14,11 +17,13 @@ namespace LMS.Infrastructure.Repositories
     public class LeaveApprovalRepository: ILeaveApprovalRepository
     {
         private readonly LMSDbContext lMSDbContext;
+        private readonly IEmailService _emailService;
 
 
-        public LeaveApprovalRepository(LMSDbContext lMSDbContext)
+        public LeaveApprovalRepository(LMSDbContext lMSDbContext, IEmailService emailService)
         {
             this.lMSDbContext = lMSDbContext;
+            _emailService = emailService;
         }
         public async Task<List<PendingLeaveRequestDto>> GetLeaveDetailsByDepartmentAsync(string departmentId)
         {
@@ -26,7 +31,7 @@ namespace LMS.Infrastructure.Repositories
             Console.WriteLine($"Today is: {today}");
             return await lMSDbContext.LeaveDetails
                 .Join(
-                    lMSDbContext.Users,
+                    lMSDbContext.XDUsers,
                     ld => ld.EmpEmailID.Trim(),
                     u => u.EmailAddress != null ? u.EmailAddress.Trim() : "",
                     (ld, u) => new { LeaveDetail = ld, User = u }
@@ -90,6 +95,10 @@ namespace LMS.Infrastructure.Repositories
                     };
                 }
 
+               // Get employee details for email
+                var employee = await lMSDbContext.XDUsers
+                    .FirstOrDefaultAsync(u => u.EmailAddress.Trim() == request.EmployeeEmail.Trim());
+
                 // Check if leave is still pending
                 if (leaveDetail.LeaveStatus != "0")
                 {
@@ -112,7 +121,7 @@ namespace LMS.Infrastructure.Repositories
                     };
                 }
                 // Find the approver user record to get the username
-                var approverUser = await lMSDbContext.Users
+                var approverUser = await lMSDbContext.XDUsers
                     .FirstOrDefaultAsync(u => u.EmailAddress.Trim() == request.ApproverEmail.Trim());
 
                 if (approverUser == null)
@@ -142,15 +151,15 @@ namespace LMS.Infrastructure.Repositories
                 }
 
                 // Check if employee has sufficient leave balance
-                if (leaveEntitlement.AvailableLeave < request.LeaveDays)
-                {
-                    return new ApprovalResponseDto
-                    {
-                        Success = false,
-                        Message = $"Insufficient leave balance. Available: {leaveEntitlement.AvailableLeave}, Requested: {request.LeaveDays}",
-                        UpdatedStatus = 0
-                    };
-                }
+                //if (leaveEntitlement.AvailableLeave < request.LeaveDays)
+                //{
+                //    return new ApprovalResponseDto
+                //    {
+                //        Success = false,
+                //        Message = $"Insufficient leave balance. Available: {leaveEntitlement.AvailableLeave}, Requested: {request.LeaveDays}",
+                //        UpdatedStatus = 0
+                //    };
+                //}
 
                 // Update leave status based on approver level
                 string newStatus = request.ApproverLevel == "Approver1" ? "1" : "2";
@@ -169,6 +178,7 @@ namespace LMS.Infrastructure.Repositories
                 // Reduce available leave balance
                 leaveEntitlement.AvailableLeave -= request.LeaveDays;
                 leaveEntitlement.TakenLeaves += request.LeaveDays;
+                leaveEntitlement.RequestedLeave -= request.LeaveDays;
                 leaveEntitlement.UpdatedOn = DateTime.Now;
 
                 // Save changes
@@ -176,6 +186,25 @@ namespace LMS.Infrastructure.Repositories
                 lMSDbContext.LeaveEntitlements.Update(leaveEntitlement);
 
                 await lMSDbContext.SaveChangesAsync();
+                // Send approval email
+                try
+                {
+                    await _emailService.SendLeaveApprovalEmailAsync(
+                        request.EmployeeEmail,
+                        employee?.UserName ?? "Employee",
+                        leaveDetail.LeaveStart,
+                        leaveDetail.LeaveEnd,
+                        leaveDetail.LeaveType,
+                        request.ApproverEmail,
+                        approverUser.UserName,
+                        request.ApproverComment
+                    );
+                }
+                catch (Exception emailEx)
+                {
+                    // Log email failure but don't fail the transaction
+                    Console.WriteLine($"Email sending failed: {emailEx.Message}");
+                }
                 await transaction.CommitAsync();
 
                 return new ApprovalResponseDto
@@ -210,6 +239,10 @@ namespace LMS.Infrastructure.Repositories
                         UpdatedStatus = 0
                     };
                 }
+                // Get employee details for email
+                var employee = await lMSDbContext.XDUsers
+                    .FirstOrDefaultAsync(u => u.EmailAddress.Trim() == request.EmployeeEmail.Trim());
+
 
                 // Check if leave is still pending
                 if (leaveDetail.LeaveStatus != "0")
@@ -229,6 +262,19 @@ namespace LMS.Infrastructure.Repositories
                     {
                         Success = false,
                         Message = "Employee email mismatch.",
+                        UpdatedStatus = 0
+                    };
+                }
+                // Find the approver user record to get the username
+                var approverUser = await lMSDbContext.XDUsers
+                    .FirstOrDefaultAsync(u => u.EmailAddress.Trim() == request.ApproverEmail.Trim());
+
+                if (approverUser == null)
+                {
+                    return new ApprovalResponseDto
+                    {
+                        Success = false,
+                        Message = "Approver user not found.",
                         UpdatedStatus = 0
                     };
                 }
@@ -262,6 +308,7 @@ namespace LMS.Infrastructure.Repositories
 
                 // Update timestamps
                 leaveDetail.UpdatedOn = DateTime.Now;
+                leaveDetail.UpdatedBy = approverUser.UserName;
 
                 // Update rejected leave column in leave entitlement table
                 leaveEntitlement.RejectedLeave += request.LeaveDays;
@@ -272,6 +319,25 @@ namespace LMS.Infrastructure.Repositories
                 lMSDbContext.LeaveEntitlements.Update(leaveEntitlement);
 
                 await lMSDbContext.SaveChangesAsync();
+                // Send approval email
+                try
+                {
+                    await _emailService.SendLeaveRejectionEmailAsync(
+                        request.EmployeeEmail,
+                        employee?.UserName ?? "Employee",
+                        leaveDetail.LeaveStart,
+                        leaveDetail.LeaveEnd,
+                        leaveDetail.LeaveType,
+                        request.ApproverEmail,
+                        approverUser.UserName,
+                        request.ApproverComment
+                    );
+                }
+                catch (Exception emailEx)
+                {
+                    // Log email failure but don't fail the transaction
+                    Console.WriteLine($"Email sending failed: {emailEx.Message}");
+                }
                 await transaction.CommitAsync();
 
                 return new ApprovalResponseDto
