@@ -24,16 +24,16 @@ namespace LMS.Infrastructure.Repositories
                 join u in _context.XDUsers
                     on l.EmpEmailID.Trim().ToLower() equals u.EmailAddress.Trim().ToLower() into userJoin
                 from user in userJoin.DefaultIfEmpty()
-                where l.LeaveStart.Year == year && l.LeaveStart.Month == month
+                where l.LeaveStart != null && l.LeaveStart.Value.Year == year && l.LeaveStart.Value.Month == month
                 select new LeaveDto
                 {
-                    LeaveStart = l.LeaveStart,
-                    StartTime = l.StartTime.ToString(@"hh\:mm"),
-                    LeaveEnd = l.LeaveEnd,
-                    EndTime = l.EndTime.ToString(@"hh\:mm"),
-                    LeaveType = l.LeaveType,
-                    UserName = user != null ? user.UserName : "Unknown",
-                    DepartmentID = user != null ? user.DepartmentID : "Unknown"
+                    LeaveStart = l.LeaveStart ?? default, // fallback default if null
+                    StartTime = l.StartTime.HasValue ? l.StartTime.Value.ToString(@"hh\:mm") : "00:00",
+                    LeaveEnd = l.LeaveEnd ?? l.LeaveStart ?? default,
+                    EndTime = l.EndTime.HasValue ? l.EndTime.Value.ToString(@"hh\:mm") : "00:00",
+                    LeaveType = l.LeaveType ?? string.Empty,
+                    UserName = user != null ? user.UserName ?? "Unknown" : "Unknown",
+                    DepartmentID = user != null ? user.DepartmentID ?? "Unknown" : "Unknown"
                 }
             ).ToListAsync();
 

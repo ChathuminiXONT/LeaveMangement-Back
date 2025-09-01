@@ -1,11 +1,13 @@
-﻿namespace LMS.Domain.Models
+﻿using System;
+
+namespace LMS.Domain.Models
 {
     public class User
     {
-        public string EmailAddress { get; set; }
-        public string Password { get; set; }
-        public string UserName { get; set; }
-        public string IsActive { get; set; }
-        public string DepartmentID { get; set; } // backend uses PascalCase
+        public string? EmailAddress { get; set; }  // Nullable
+        public string? Password { get; set; }      // Nullable
+        public string? UserName { get; set; }      // Nullable
+        public string? IsActive { get; set; }      // Nullable
+        public string? DepartmentID { get; set; }  // Nullable
     }
 }

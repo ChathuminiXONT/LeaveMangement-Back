@@ -3,6 +3,9 @@ using LMS.Domain.Interfaces;
 using LMS.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using LMS.Domain.Models;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace LMS.Infrastructure.Repositories
 {
@@ -18,15 +21,15 @@ namespace LMS.Infrastructure.Repositories
         public async Task<IEnumerable<RecentActivityDto>> GetRecentActivitiesAsync(string email)
         {
             return await _context.LeaveDetails
-                .Where(l => l.EmpEmailID == email)   // 🔹 filter by email
-                .OrderByDescending(l => l.LeaveAppliedOn)
+                .Where(l => l.EmpEmailID == email && l.LeaveAppliedOn != null)
+                .OrderByDescending(l => l.LeaveAppliedOn.Value)
                 .Take(10)
                 .Select(l => new RecentActivityDto
                 {
-                    LeaveReason = l.LeaveReason,
-                    LeaveAppliedOn = l.LeaveAppliedOn,
-                    LeaveStatus = l.LeaveStatus,
-                    UpdatedBy = l.UpdatedBy
+                    LeaveReason = l.LeaveReason ?? string.Empty,
+                    LeaveAppliedOn = l.LeaveAppliedOn ?? default,
+                    LeaveStatus = l.LeaveStatus ?? string.Empty,
+                    UpdatedBy = l.UpdatedBy ?? string.Empty
                 })
                 .ToListAsync();
         }
