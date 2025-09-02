@@ -15,9 +15,9 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<LMSDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<ILeaveRepository, LeaveRepository>();
+builder.Services.AddScoped<ILeaveEntryRepository, LeaveEntryRepository>();
 builder.Services.AddScoped<ILeaveTypeRepository, LeaveTypeRepository>();
-builder.Services.AddScoped<ILeaveService, LeaveService>();
+builder.Services.AddScoped<ILeaveService, LeaveEntryService>();
 builder.Services.AddScoped<IEmailService2, EmailService2>();
 
 // CORS Configuration

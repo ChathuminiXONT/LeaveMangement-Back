@@ -8,13 +8,13 @@ using Microsoft.Extensions.Logging;
 
 namespace LMS.Infrastructure.Repositories
 {
-    public class LeaveRepository : ILeaveRepository
+    public class LeaveEntryRepository : ILeaveEntryRepository
     {
         private readonly LMSDbContext _context;
-        private readonly ILogger<LeaveRepository> _logger;
+        private readonly ILogger<LeaveEntryRepository> _logger;
         private readonly IEmailService2 _emailService;
 
-        public LeaveRepository(LMSDbContext context, ILogger<LeaveRepository> logger, IEmailService2 emailService)
+        public LeaveEntryRepository(LMSDbContext context, ILogger<LeaveEntryRepository> logger, IEmailService2 emailService)
         {
             _context = context;
             _logger = logger;

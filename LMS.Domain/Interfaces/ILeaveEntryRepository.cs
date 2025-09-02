@@ -3,7 +3,7 @@ using LMS.Domain.Models;
 
 namespace LMS.Domain.Interfaces
 {
-    public interface ILeaveRepository
+    public interface ILeaveEntryRepository
     {
         Task<ApiResponse<long>> ApplyLeaveAsync(LeaveApplicationDto leaveApplication);
         Task<ApiResponse<List<LeaveApplicationResponseDto>>> GetEmployeeLeaveHistoryAsync(string employeeNo, int year);

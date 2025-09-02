@@ -8,12 +8,12 @@ namespace LMS.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class LeaveController : ControllerBase
+    public class LeaveEntryController : ControllerBase
     {
         private readonly ILeaveService _leaveService;
         private readonly ILeaveTypeRepository _leaveTypeRepository;
 
-        public LeaveController(ILeaveService leaveService, ILeaveTypeRepository leaveTypeRepository)
+        public LeaveEntryController(ILeaveService leaveService, ILeaveTypeRepository leaveTypeRepository)
         {
             _leaveService = leaveService;
             _leaveTypeRepository = leaveTypeRepository;

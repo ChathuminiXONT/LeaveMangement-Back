@@ -4,16 +4,16 @@ using Microsoft.Extensions.Logging;
 
 namespace LMS.Application.Services
 {
-    public class LeaveService : ILeaveService
+    public class LeaveEntryService : ILeaveService
     {
-        private readonly ILeaveRepository _leaveRepository;
+        private readonly ILeaveEntryRepository _leaveRepository;
         private readonly ILeaveTypeRepository _leaveTypeRepository;
-        private readonly ILogger<LeaveService> _logger;
+        private readonly ILogger<LeaveEntryService> _logger;
 
-        public LeaveService(
-            ILeaveRepository leaveRepository,
+        public LeaveEntryService(
+            ILeaveEntryRepository leaveRepository,
             ILeaveTypeRepository leaveTypeRepository,
-            ILogger<LeaveService> logger)
+            ILogger<LeaveEntryService> logger)
         {
             _leaveRepository = leaveRepository;
             _leaveTypeRepository = leaveTypeRepository;
