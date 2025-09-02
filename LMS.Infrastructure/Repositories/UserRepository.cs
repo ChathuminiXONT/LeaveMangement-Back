@@ -18,7 +18,7 @@ namespace LMS.Infrastructure.Repositories
 
         public async Task<User> ValidateUser(string email, string password)
         {
-            return await _context.XDUsers
+            var user = await _context.XDUsers
                 .Where(u => u.EmailAddress == email
                          && u.Password == password
                          && u.IsActive == "1")
@@ -30,6 +30,17 @@ namespace LMS.Infrastructure.Repositories
                     DepartmentID = u.DepartmentID
                 })
                 .FirstOrDefaultAsync();
+
+            if (user != null)
+            {
+                // ✅ Check if user is Department Approver (Admin)
+                bool isAdmin = await _context.Departments
+                    .AnyAsync(d => d.ApproverEmp1 == email || d.ApproverEmp2 == email);
+
+                user.IsAdmin = isAdmin;
+            }
+
+            return user;
         }
     }
 }

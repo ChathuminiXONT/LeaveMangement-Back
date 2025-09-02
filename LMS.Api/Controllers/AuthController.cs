@@ -1,9 +1,7 @@
 ﻿using LMS.Application.Services;
 using LMS.Domain.Interfaces;
-using LMS.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using LMS.Domain.DTOs;
 
 namespace LMS.Api.Controllers
 {
@@ -25,13 +23,14 @@ namespace LMS.Api.Controllers
             if (user == null)
                 return Unauthorized(new { message = "Invalid credentials" });
 
-            // Map DepartmentID to departmentId for frontend
+            // ✅ Return IsAdmin flag to frontend
             return Ok(new
             {
                 emailAddress = user.EmailAddress,
                 userName = user.UserName,
-                DepartmentID = user.DepartmentID,
-                isActive = user.IsActive
+                departmentId = user.DepartmentID,
+                isActive = user.IsActive,
+                isAdmin = user.IsAdmin
             });
         }
     }

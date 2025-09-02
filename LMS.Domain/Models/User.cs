@@ -73,8 +73,11 @@ namespace LMS.Domain.Models
         public string? Password { get; set; }
         public string? UserName { get; set; }
         public string? IsActive { get; set; }
-        public string? DepartmentID { get; set; } // backend uses PascalCase
+        public string? DepartmentID { get; set; }
         public int? UserID { get; set; }
         public string? LoginID { get; set; }
+
+        // ✅ New property to track Admin role
+        public bool IsAdmin { get; set; } = false;
     }
 }
