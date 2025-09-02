@@ -7,12 +7,12 @@ using System.Net.Mail;
 
 namespace LMS.Infrastructure.Services
 {
-    public class EmailService : IEmailService
+    public class EmailService2 : IEmailService2
     {
         private readonly IConfiguration _configuration;
-        private readonly ILogger<EmailService> _logger;
+        private readonly ILogger<EmailService2> _logger;
 
-        public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
+        public EmailService2(IConfiguration configuration, ILogger<EmailService2> logger)
         {
             _configuration = configuration;
             _logger = logger;

@@ -15,10 +15,10 @@ namespace LMS.Infrastructure.Repositories
 {
     public class LeaveTypeRepository : ILeaveTypeRepository
     {
-        private readonly ApplicationDbContext _context;
+        private readonly LMSDbContext _context;
         private readonly ILogger<LeaveTypeRepository> _logger;
 
-        public LeaveTypeRepository(ApplicationDbContext context, ILogger<LeaveTypeRepository> logger)
+        public LeaveTypeRepository(LMSDbContext context, ILogger<LeaveTypeRepository> logger)
         {
             _context = context;
             _logger = logger;

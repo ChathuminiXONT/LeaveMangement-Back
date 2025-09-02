@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LMS.Domain.Interfaces
 {
-    public interface IEmailService
+    public interface IEmailService2
     {
         Task<bool> SendLeaveApplicationEmailAsync(string approverEmail, LeaveApplicationResponseDto leaveDetails);
         Task<bool> SendLeaveStatusEmailAsync(string employeeEmail, LeaveApplicationResponseDto leaveDetails, bool isApproved);

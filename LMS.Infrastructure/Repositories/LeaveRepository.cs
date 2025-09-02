@@ -10,11 +10,11 @@ namespace LMS.Infrastructure.Repositories
 {
     public class LeaveRepository : ILeaveRepository
     {
-        private readonly ApplicationDbContext _context;
+        private readonly LMSDbContext _context;
         private readonly ILogger<LeaveRepository> _logger;
-        private readonly IEmailService _emailService;
+        private readonly IEmailService2 _emailService;
 
-        public LeaveRepository(ApplicationDbContext context, ILogger<LeaveRepository> logger, IEmailService emailService)
+        public LeaveRepository(LMSDbContext context, ILogger<LeaveRepository> logger, IEmailService2 emailService)
         {
             _context = context;
             _logger = logger;
@@ -129,7 +129,7 @@ namespace LMS.Infrastructure.Repositories
                 leaveApplication.BusinessUnit = "XONT";
 
                 // Find user by EmpEmailID
-                var userRecord = await _context.Users
+                var userRecord = await _context.XDUsers
                     .Where(u => u.EmailAddress == leaveApplication.EmpEmailID)
                     .Select(u => new { u.UserID, u.UserName })
                     .FirstOrDefaultAsync();
@@ -162,7 +162,7 @@ namespace LMS.Infrastructure.Repositories
                 //    };
                 //}
 
-                var leaveDetail = new LeaveDetails
+                var leaveDetail = new LeaveDetail
                 {
                     BusinessUnit = leaveApplication.BusinessUnit,
                     EmployeeNo = leaveApplication.EmployeeNo,
@@ -296,12 +296,12 @@ return new ApiResponse<List<LeaveBalanceDto>>
                         LeaveType = x.LeaveDetail.LeaveType,
                         LeaveTypeName = x.LeaveType.LeaveTypeName,
                         LeaveDays = x.LeaveDetail.LeaveDays,
-                        LeaveStart = x.LeaveDetail.LeaveStart,
+                        LeaveStart = x.LeaveDetail.LeaveStart ?? DateTime.MinValue,
                         StartTime = x.LeaveDetail.StartTime,
-                        LeaveEnd = x.LeaveDetail.LeaveEnd,
+                        LeaveEnd = x.LeaveDetail.LeaveEnd ?? DateTime.MinValue,
                         EndTime = x.LeaveDetail.EndTime,
                         LeaveReason = x.LeaveDetail.LeaveReason,
-                        LeaveAppliedOn = x.LeaveDetail.LeaveAppliedOn,
+                        LeaveAppliedOn = x.LeaveDetail.LeaveAppliedOn ?? DateTime.MinValue,
                         LeaveStatus = x.LeaveDetail.LeaveStatus,
                         LeaveStatusText = GetLeaveStatusText(x.LeaveDetail.LeaveStatus),
                         ApprovedComment = x.LeaveDetail.ApprovedComment,
@@ -346,12 +346,12 @@ return new ApiResponse<List<LeaveBalanceDto>>
                         LeaveType = x.LeaveDetail.LeaveType,
                         LeaveTypeName = x.LeaveType.LeaveTypeName,
                         LeaveDays = x.LeaveDetail.LeaveDays,
-                        LeaveStart = x.LeaveDetail.LeaveStart,
+                        LeaveStart = x.LeaveDetail.LeaveStart ?? DateTime.MinValue,
                         StartTime = x.LeaveDetail.StartTime,
-                        LeaveEnd = x.LeaveDetail.LeaveEnd,
+                        LeaveEnd = x.LeaveDetail.LeaveEnd ?? DateTime.MinValue,
                         EndTime = x.LeaveDetail.EndTime,
                         LeaveReason = x.LeaveDetail.LeaveReason,
-                        LeaveAppliedOn = x.LeaveDetail.LeaveAppliedOn,
+                        LeaveAppliedOn = x.LeaveDetail.LeaveAppliedOn ?? DateTime.MinValue,
                         LeaveStatus = x.LeaveDetail.LeaveStatus,
                         LeaveStatusText = GetLeaveStatusText(x.LeaveDetail.LeaveStatus),
                         ApprovedComment = x.LeaveDetail.ApprovedComment,
@@ -406,12 +406,12 @@ return new ApiResponse<List<LeaveBalanceDto>>
                         LeaveType = x.LeaveDetail.LeaveType,
                         LeaveTypeName = x.LeaveType.LeaveTypeName,
                         LeaveDays = x.LeaveDetail.LeaveDays,
-                        LeaveStart = x.LeaveDetail.LeaveStart,
+                        LeaveStart = x.LeaveDetail.LeaveStart ?? DateTime.MinValue,
                         StartTime = x.LeaveDetail.StartTime,
-                        LeaveEnd = x.LeaveDetail.LeaveEnd,
+                        LeaveEnd = x.LeaveDetail.LeaveEnd ?? DateTime.MinValue,
                         EndTime = x.LeaveDetail.EndTime,
                         LeaveReason = x.LeaveDetail.LeaveReason,
-                        LeaveAppliedOn = x.LeaveDetail.LeaveAppliedOn,
+                        LeaveAppliedOn = x.LeaveDetail.LeaveAppliedOn ?? DateTime.MinValue,
                         LeaveStatus = x.LeaveDetail.LeaveStatus,
                         LeaveStatusText = GetLeaveStatusText(x.LeaveDetail.LeaveStatus),
                         ApprovedComment = x.LeaveDetail.ApprovedComment,
@@ -470,29 +470,29 @@ return new ApiResponse<List<LeaveBalanceDto>>
                 }
 
                 // Check leave entitlement for the updated days
-                var daysDifference = leaveApplication.LeaveDays - existingLeave.LeaveDays;
-                if (daysDifference > 0)
-                {
-                    var hasEntitlement = await CheckLeaveEntitlementAsync(
-                        leaveApplication.EmployeeNo,
-                        leaveApplication.LeaveType,
-                        daysDifference,
-                        leaveApplication.LeaveYear);
+                //var daysDifference = leaveApplication.LeaveDays - existingLeave.LeaveDays;
+                //if (daysDifference > 0)
+                //{
+                //    var hasEntitlement = await CheckLeaveEntitlementAsync(
+                //        leaveApplication.EmployeeNo,
+                //        leaveApplication.LeaveType,
+                //        daysDifference,
+                //        leaveApplication.LeaveYear);
 
-                    if (!hasEntitlement)
-                    {
-                        return new ApiResponse<bool>
-                        {
-                            Success = false,
-                            Message = "Insufficient leave balance for the updated leave days."
-                        };
-                    }
-                }
+                //    if (!hasEntitlement)
+                //    {
+                //        return new ApiResponse<bool>
+                //        {
+                //            Success = false,
+                //            Message = "Insufficient leave balance for the updated leave days."
+                //        };
+                //    }
+                //}
                 // Get username from User table using EmployeeNo
                 string user;
                 try
                 {
-                    user = await _context.Users  // Changed from Users to User (singular)
+                    user = await _context.XDUsers  // Changed from Users to User (singular)
                         .Where(u => u.EmailAddress == leaveApplication.EmpEmailID)  // Changed to LoginID and EmployeeNo
                         .Select(u => u.UserName)
                         .FirstOrDefaultAsync();
@@ -731,7 +731,7 @@ return new ApiResponse<List<LeaveBalanceDto>>
             {
                 var pendingApprovals = await _context.LeaveDetails
                     .Where(ld => ld.LeaveStatus == "0") // Pending status
-                    .Join(_context.Users,
+                    .Join(_context.XDUsers,
                         ld => ld.EmployeeNo,
                         u => u.LoginID,
                         (ld, u) => new { LeaveDetail = ld, User = u })
@@ -753,12 +753,12 @@ return new ApiResponse<List<LeaveBalanceDto>>
                             LeaveType = x.LeaveDetail.LeaveType,
                             LeaveTypeName = lt.LeaveTypeName,
                             LeaveDays = x.LeaveDetail.LeaveDays,
-                            LeaveStart = x.LeaveDetail.LeaveStart,
+                            LeaveStart = x.LeaveDetail.LeaveStart ?? DateTime.MinValue,
                             StartTime = x.LeaveDetail.StartTime,
-                            LeaveEnd = x.LeaveDetail.LeaveEnd,
+                            LeaveEnd = x.LeaveDetail.LeaveEnd ?? DateTime.MinValue,
                             EndTime = x.LeaveDetail.EndTime,
                             LeaveReason = x.LeaveDetail.LeaveReason,
-                            LeaveAppliedOn = x.LeaveDetail.LeaveAppliedOn,
+                            LeaveAppliedOn = x.LeaveDetail.LeaveAppliedOn ?? DateTime.MinValue,
                             LeaveStatus = x.LeaveDetail.LeaveStatus,
                             LeaveStatusText = "Pending",
                             ApprovedComment = x.LeaveDetail.ApprovedComment,
@@ -812,7 +812,7 @@ return new ApiResponse<List<LeaveBalanceDto>>
         {
             try
             {
-                var approver = await _context.Users
+                var approver = await _context.XDUsers
                     .Where(u => u.LoginID == employeeNo)
                     .Join(_context.Departments,
                         u => u.DepartmentID,
@@ -858,7 +858,7 @@ return new ApiResponse<List<LeaveBalanceDto>>
                     string user = null;
                     if (int.TryParse(employeeNo, out int empId))
                     {
-                        user = await _context.Users
+                        user = await _context.XDUsers
                             .Where(u => u.UserID == empId)
                             .Select(u => u.UserName)
                             .FirstOrDefaultAsync();
