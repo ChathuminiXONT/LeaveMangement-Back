@@ -2,6 +2,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using LMS.Domain.Models;
 
+
 namespace LMS.Infrastructure.Data
 {
     public class LMSDbContext : DbContext

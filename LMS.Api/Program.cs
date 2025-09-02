@@ -12,6 +12,7 @@ using LMS.Infrastructure.Repositories;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using LMS.Application.Services;
+using LMS.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,6 +110,28 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
+builder.Services.AddDbContext<LMSDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<ILeaveEntryRepository, LeaveEntryRepository>();
+builder.Services.AddScoped<ILeaveTypeRepository, LeaveTypeRepository>();
+builder.Services.AddScoped<ILeaveService, LeaveEntryService>();
+builder.Services.AddScoped<IEmailService2, EmailService2>();
+
+// CORS Configuration
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngularApp",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:4200")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
+
+// Logging
+builder.Services.AddLogging();
 
 var app = builder.Build();
 
