@@ -37,10 +37,10 @@ namespace LMS.Infrastructure.Repositories
                     (ld, u) => new { LeaveDetail = ld, User = u }
                 )
                 .Join(
-                    lMSDbContext.LeaveEntitlements,
-                    x => new { Email = x.LeaveDetail.EmpEmailID.Trim(), LeaveType = x.LeaveDetail.LeaveType },
-                    le => new { Email = le.EmpEmailID != null ? le.EmpEmailID.Trim() : "", LeaveType = le.LeaveType },
-                    (x, le) => new { x.LeaveDetail, x.User, LeaveEntitle = le }
+                   lMSDbContext.LeaveEntitlements,
+  x => new { Email = x.LeaveDetail.EmpEmailID.Trim(), LeaveType = x.LeaveDetail.LeaveType },
+  le => new { Email = le.EmpEmailID != null ? le.EmpEmailID.Trim() : "", LeaveType = le.LeaveType },
+  (x, le) => new { x.LeaveDetail, x.User, LeaveEntitle = le }
                 )
                 .Where(x =>
                    // x.LeaveDetail.LeaveStatus == "0" &&
