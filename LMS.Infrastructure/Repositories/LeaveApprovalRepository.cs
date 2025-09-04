@@ -38,8 +38,8 @@ namespace LMS.Infrastructure.Repositories
                 )
                 .Join(
                     lMSDbContext.LeaveEntitlements,
-                    x => x.LeaveDetail.EmpEmailID.Trim(),
-                    le => le.EmpEmailID != null ? le.EmpEmailID.Trim() : "",
+                    x => new { Email = x.LeaveDetail.EmpEmailID.Trim(), LeaveType = x.LeaveDetail.LeaveType },
+                    le => new { Email = le.EmpEmailID != null ? le.EmpEmailID.Trim() : "", LeaveType = le.LeaveType },
                     (x, le) => new { x.LeaveDetail, x.User, LeaveEntitle = le }
                 )
                 .Where(x =>

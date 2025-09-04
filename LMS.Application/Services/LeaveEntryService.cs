@@ -165,15 +165,15 @@ namespace LMS.Application.Services
                 };
             }
 
-            var daysDifference = (leaveApplication.LeaveEnd - leaveApplication.LeaveStart).Days + 1;
-            if (leaveApplication.LeaveDays != daysDifference)
-            {
-                return new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "Leave days calculation mismatch."
-                };
-            }
+            //var daysDifference = (leaveApplication.LeaveEnd - leaveApplication.LeaveStart).Days + 1;
+            //if (leaveApplication.LeaveDays != daysDifference)
+            //{
+            //    return new ApiResponse<object>
+            //    {
+            //        Success = false,
+            //        Message = "Leave days calculation mismatch."
+            //    };
+            //}
 
             return new ApiResponse<object> { Success = true };
         }
