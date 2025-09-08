@@ -8,6 +8,8 @@ namespace LMS.Domain.Interfaces
         Task<ApiResponse<long>> ApplyLeaveAsync(LeaveApplicationDto leaveApplication);
         Task<ApiResponse<List<LeaveApplicationResponseDto>>> GetEmployeeLeaveHistoryAsync(string employeeNo, int year);
         Task<ApiResponse<LeaveApplicationResponseDto>> GetLeaveByIdAsync(long recId);
+        Task<ApiResponse<List<string>>> GetApproverEmailsByUserEmailAsync(string email);
+
         Task<ApiResponse<List<LeaveApplicationResponseDto>>> GetLeavesByEmailAsync(string email);
         Task<ApiResponse<List<LeaveBalanceDto>>> GetAvailableLeavesByEmailAndYearAsync(string email, int year);
         Task<ApiResponse<bool>> UpdateLeaveAsync(long recId, LeaveApplicationDto leaveApplication);

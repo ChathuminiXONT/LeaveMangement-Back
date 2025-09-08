@@ -12,6 +12,8 @@ namespace LMS.Domain.Interfaces
         Task<ApiResponse<LeaveApplicationResponseDto>> GetLeaveByIdAsync(long recId);
         Task<ApiResponse<List<LeaveApplicationResponseDto>>> GetLeavesByEmailAsync(string email); //new
 
+        Task<ApiResponse<List<string>>> GetApproverEmailsByUserEmailAsync(string email);
+
         Task<ApiResponse<List<LeaveBalanceDto>>> GetAvailableLeavesByEmailAndYearAsync(string email, int year);
 
         Task<ApiResponse<bool>> UpdateLeaveAsync(long recId, LeaveApplicationDto leaveApplication);

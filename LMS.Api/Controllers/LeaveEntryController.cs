@@ -12,11 +12,21 @@ namespace LMS.Api.Controllers
     {
         private readonly ILeaveService _leaveService;
         private readonly ILeaveTypeRepository _leaveTypeRepository;
-
+   
         public LeaveEntryController(ILeaveService leaveService, ILeaveTypeRepository leaveTypeRepository)
         {
             _leaveService = leaveService;
             _leaveTypeRepository = leaveTypeRepository;
+        }
+        [HttpGet("approvers/{email}")]
+        public async Task<IActionResult> GetApproversByUserEmail(string email)
+        {
+            var result = await _leaveService.GetApproverEmailsByUserEmailAsync(email);
+
+            if (result.Success)
+                return Ok(new { approverEmails = result.Data }); // Data holds List<string>
+
+            return NotFound(new { error = result.Message }); // Message holds error info
         }
 
         [HttpPost("apply")]
@@ -34,6 +44,7 @@ namespace LMS.Api.Controllers
 
             return BadRequest(result);
         }
+
         [HttpGet("by-email/{email}")]         //new
         public async Task<IActionResult> GetLeavesByEmail(string email)
         {

@@ -121,6 +121,43 @@ namespace LMS.Infrastructure.Repositories
         //        }
         //    }
         //new
+        public async Task<ApiResponse<List<string>>> GetApproverEmailsByUserEmailAsync(string email)
+        {
+            try
+            {
+                var approvers = await (from u in _context.XDUsers
+                                       join d in _context.Departments
+                                       on u.DepartmentID equals d.Department
+                                       where u.EmailAddress == email
+                                       select new { d.ApproverEmp1, d.ApproverEmp2 })
+                                      .FirstOrDefaultAsync();
+
+                var approverList = new List<string>();
+                if (approvers != null)
+                {
+                    if (!string.IsNullOrWhiteSpace(approvers.ApproverEmp1))
+                        approverList.Add(approvers.ApproverEmp1);
+                    if (!string.IsNullOrWhiteSpace(approvers.ApproverEmp2))
+                        approverList.Add(approvers.ApproverEmp2);
+                }
+
+                return new ApiResponse<List<string>>
+                {
+                    Success = true,
+                    Data = approverList
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching approver emails for {Email}", email);
+                return new ApiResponse<List<string>>
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
         public async Task<ApiResponse<long>> ApplyLeaveAsync(LeaveApplicationDto leaveApplication)
         {
             try

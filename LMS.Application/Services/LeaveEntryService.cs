@@ -47,6 +47,24 @@ namespace LMS.Application.Services
             }
         }
         //new
+        public async Task<ApiResponse<List<string>>> GetApproverEmailsByUserEmailAsync(string email)
+        {
+            try
+            {
+                // Delegate to repository
+                return await _leaveRepository.GetApproverEmailsByUserEmailAsync(email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in LeaveEntryService.GetApproverEmailsByUserEmailAsync");
+                return new ApiResponse<List<string>>
+                {
+                    Success = false,
+                    Message = "An error occurred while fetching approver emails."
+                };
+            }
+        }
+
         public async Task<ApiResponse<List<LeaveBalanceDto>>> GetAvailableLeavesByEmailAndYearAsync(string email, int year)
         {
             try { return await _leaveRepository.GetAvailableLeavesByEmailAndYearAsync(email, year); }
