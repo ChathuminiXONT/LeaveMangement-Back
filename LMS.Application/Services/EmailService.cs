@@ -1,6 +1,11 @@
-﻿using LMS.Domain.Models;
+﻿using Azure.Identity;
 using LMS.Domain.Interfaces;
+using LMS.Domain.Models;
 using Microsoft.Extensions.Options;
+using Microsoft.Graph;
+using Microsoft.Graph.Models;
+using Microsoft.Graph.Users.Item.SendMail;
+using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,90 +18,141 @@ namespace LMS.Application.Services
 {
     public class EmailService : IEmailService
     {
-        private readonly EmailSettings _emailSettings;
+        private readonly LMS.Domain.Models.EmailSettings _emailSettings;
 
-        public EmailService(IOptions<EmailSettings> emailSettings)
+        public EmailService(IOptions<LMS.Domain.Models.EmailSettings> emailSettings)
         {
             _emailSettings = emailSettings.Value;
         }
 
+        //public async Task<bool> SendEmailAsync(EmailRequest emailRequest)
+        //{
+        //    try
+        //    {
+
+        //        Console.WriteLine("=== EMAIL DEBUG START ===");
+        //        Console.WriteLine($"SMTP Server: {_emailSettings.SmtpServer}");
+        //        Console.WriteLine($"SMTP Port: {_emailSettings.SmtpPort}");
+        //        Console.WriteLine($"Username: {_emailSettings.Username}");
+        //        Console.WriteLine($"SenderEmail: {_emailSettings.SenderEmail}");
+        //        Console.WriteLine($"EnableSsl: {_emailSettings.EnableSsl}");
+        //        Console.WriteLine($"To Emails: {string.Join(", ", emailRequest.ToEmails)}");
+        //        Console.WriteLine($"Subject: {emailRequest.Subject}");
+
+        //        using var client = new SmtpClient(_emailSettings.SmtpServer, _emailSettings.SmtpPort);
+        //        client.EnableSsl = _emailSettings.EnableSsl;
+        //        client.UseDefaultCredentials = false;
+        //        client.Credentials = new NetworkCredential(_emailSettings.Username, _emailSettings.Password);
+
+        //        Console.WriteLine("SMTP Client configured...");
+
+        //        using var mailMessage = new MailMessage();
+        //        // Use FromEmail from request if provided, otherwise use settings
+        //        var fromEmail = !string.IsNullOrEmpty(emailRequest.FromEmail)
+        //            ? emailRequest.FromEmail
+        //            : _emailSettings.SenderEmail;
+
+        //        var fromName = !string.IsNullOrEmpty(emailRequest.FromName)
+        //            ? emailRequest.FromName
+        //            : _emailSettings.SenderName;
+
+        //        Console.WriteLine($"From Email: {fromEmail}");
+        //        Console.WriteLine($"From Name: {fromName}");
+
+        //        mailMessage.From = new MailAddress(fromEmail, fromName);
+
+        //        // Add Reply-To if sending from system email but want replies to go to approver
+        //        if (emailRequest.FromEmail != _emailSettings.SenderEmail && !string.IsNullOrEmpty(emailRequest.FromEmail))
+        //        {
+        //            mailMessage.ReplyToList.Add(new MailAddress(emailRequest.FromEmail, emailRequest.FromName));
+        //            Console.WriteLine($"Reply-To added: {emailRequest.FromEmail}");
+        //        }
+
+        //        foreach (var email in emailRequest.ToEmails)
+        //        {
+        //            mailMessage.To.Add(email);
+        //            Console.WriteLine($"Added To: {email}");
+        //        }
+
+        //        foreach (var email in emailRequest.CcEmails)
+        //        {
+        //            mailMessage.CC.Add(email);
+        //            Console.WriteLine($"Added CC: {email}");
+        //        }
+
+        //        mailMessage.Subject = emailRequest.Subject;
+        //        mailMessage.Body = emailRequest.Body;
+        //        mailMessage.IsBodyHtml = emailRequest.IsHtml;
+
+        //        await client.SendMailAsync(mailMessage);
+        //        return true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine("❌ EMAIL SENDING FAILED!");
+        //        Console.WriteLine($"Error Type: {ex.GetType().Name}");
+        //        Console.WriteLine($"Error Message: {ex.Message}");
+        //        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        //        if (ex.InnerException != null)
+        //        {
+        //            Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+        //        }
+        //        Console.WriteLine("=== EMAIL DEBUG END ===");
+        //        return false;
+        //    }
+        //}
+
+        private GraphServiceClient GetGraphClient()
+        {
+            var credential = new ClientSecretCredential(
+                _emailSettings.TenantId,
+                _emailSettings.ClientId,
+                _emailSettings.ClientSecret);
+
+            return new GraphServiceClient(credential);
+        }
         public async Task<bool> SendEmailAsync(EmailRequest emailRequest)
         {
             try
             {
+                var graphClient = GetGraphClient();
 
-                Console.WriteLine("=== EMAIL DEBUG START ===");
-                Console.WriteLine($"SMTP Server: {_emailSettings.SmtpServer}");
-                Console.WriteLine($"SMTP Port: {_emailSettings.SmtpPort}");
-                Console.WriteLine($"Username: {_emailSettings.Username}");
-                Console.WriteLine($"SenderEmail: {_emailSettings.SenderEmail}");
-                Console.WriteLine($"EnableSsl: {_emailSettings.EnableSsl}");
-                Console.WriteLine($"To Emails: {string.Join(", ", emailRequest.ToEmails)}");
-                Console.WriteLine($"Subject: {emailRequest.Subject}");
-
-                using var client = new SmtpClient(_emailSettings.SmtpServer, _emailSettings.SmtpPort);
-                client.EnableSsl = _emailSettings.EnableSsl;
-                client.UseDefaultCredentials = false;
-                client.Credentials = new NetworkCredential(_emailSettings.Username, _emailSettings.Password);
-
-                Console.WriteLine("SMTP Client configured...");
-
-                using var mailMessage = new MailMessage();
-                // Use FromEmail from request if provided, otherwise use settings
-                var fromEmail = !string.IsNullOrEmpty(emailRequest.FromEmail)
-                    ? emailRequest.FromEmail
-                    : _emailSettings.SenderEmail;
-
-                var fromName = !string.IsNullOrEmpty(emailRequest.FromName)
-                    ? emailRequest.FromName
-                    : _emailSettings.SenderName;
-
-                Console.WriteLine($"From Email: {fromEmail}");
-                Console.WriteLine($"From Name: {fromName}");
-
-                mailMessage.From = new MailAddress(fromEmail, fromName);
-
-                // Add Reply-To if sending from system email but want replies to go to approver
-                if (emailRequest.FromEmail != _emailSettings.SenderEmail && !string.IsNullOrEmpty(emailRequest.FromEmail))
+                var message = new Message
                 {
-                    mailMessage.ReplyToList.Add(new MailAddress(emailRequest.FromEmail, emailRequest.FromName));
-                    Console.WriteLine($"Reply-To added: {emailRequest.FromEmail}");
-                }
+                    Subject = emailRequest.Subject,
+                    Body = new ItemBody
+                    {
+                        ContentType = emailRequest.IsHtml ? BodyType.Html : BodyType.Text,
+                        Content = emailRequest.Body
+                    },
+                    ToRecipients = emailRequest.ToEmails?.Select(e => new Recipient
+                    {
+                        EmailAddress = new EmailAddress { Address = e }
+                    }).ToList(),
+                    CcRecipients = emailRequest.CcEmails?.Select(e => new Recipient
+                    {
+                        EmailAddress = new EmailAddress { Address = e }
+                    }).ToList()
+                };
 
-                foreach (var email in emailRequest.ToEmails)
+                var sendMailBody = new SendMailPostRequestBody
                 {
-                    mailMessage.To.Add(email);
-                    Console.WriteLine($"Added To: {email}");
-                }
+                    Message = message,
+                    SaveToSentItems = false
+                };
 
-                foreach (var email in emailRequest.CcEmails)
-                {
-                    mailMessage.CC.Add(email);
-                    Console.WriteLine($"Added CC: {email}");
-                }
+                await graphClient.Users[emailRequest.FromEmail]
+                    .SendMail
+                    .PostAsync(sendMailBody);
 
-                mailMessage.Subject = emailRequest.Subject;
-                mailMessage.Body = emailRequest.Body;
-                mailMessage.IsBodyHtml = emailRequest.IsHtml;
-
-                await client.SendMailAsync(mailMessage);
                 return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine("❌ EMAIL SENDING FAILED!");
-                Console.WriteLine($"Error Type: {ex.GetType().Name}");
-                Console.WriteLine($"Error Message: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
-                }
-                Console.WriteLine("=== EMAIL DEBUG END ===");
+                // Optionally log ex
                 return false;
             }
         }
-
         public async Task<bool> SendLeaveApprovalEmailAsync(string employeeEmail, string employeeName,
             DateTime leaveStart, DateTime leaveEnd, string leaveType, string approverEmail, string approverName,
             string comments = null)

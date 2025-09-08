@@ -31,9 +31,10 @@ builder.Services.AddCors(options =>
               .AllowCredentials();
     });
 });
+//builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+//builder.Services.AddScoped<LMS.Domain.Interfaces.IEmailService, LMS.Application.Services.EmailService>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-builder.Services.AddScoped<LMS.Domain.Interfaces.IEmailService, LMS.Application.Services.EmailService>();
-
+builder.Services.AddScoped<IEmailService, EmailService>();
 // ✅ Database
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Database connection string not found.");
